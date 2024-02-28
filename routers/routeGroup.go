@@ -28,8 +28,8 @@ func GroupNestd(engine *gin.Engine) {
 			//Check.POST("/alldata", CheckAllHandler)
 			Check.GET("/latestdata", CheckLatestdataHandler)
 			Check.POST("/latestdata", CheckLatestdataHandler)
-			Check.POST("/sunlitall", SunCheckallHandler)
-			Check.POST("/sunlitlatest", SunChecklatestHandler)
+			Check.POST("/tdsall", SunCheckallHandler)
+			Check.POST("/tdslatest", SunChecklatestHandler)
 			Check.POST("/temlitlatest", TemChecklatestHandler)
 		}
 		//Download := Data.Group("/download")

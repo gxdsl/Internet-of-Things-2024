@@ -7,13 +7,13 @@ thresholdForm.addEventListener("submit", function(event) {
 
     var t_h = document.getElementById("temh").value;
     var t_l = document.getElementById("teml").value;
-    var s_h = document.getElementById("lighth").value;
+    var s_h = document.getElementById("TdsH").value;
     var s_l = document.getElementById("lightl").value;
     // 创建一个FormData对象，用于将表单数据发送给后端
     var formData = new FormData();
     formData.append("temh", t_h);
     formData.append("teml", t_l);
-    formData.append("lighth",s_h);
+    formData.append("TdsH",s_h);
     formData.append("lightl",s_l);
     fetch("http://127.0.0.1:8888/status/updatedata", {
         method: "POST",
@@ -39,7 +39,7 @@ function fetch_the() {
             // 更新页面数据
             document.getElementById("tem_h").textContent = data.temh + "°C";
             document.getElementById("tem_l").textContent = data.teml + "°C";
-            document.getElementById("light_h").textContent = data.lighth + " lux";
+            document.getElementById("light_h").textContent = data.TdsH + " lux";
             document.getElementById("light_l").textContent = data.lightl + " lux";
         })
         .catch(error => {

@@ -20,13 +20,13 @@
 <div id="page1">
     <div class="tem1">
         <div style="font-size: 15px;margin: 20px 60px; display: flex" >当前温度:<div id="temperature"></div></div>
-        <div style="font-size: 15px;margin: 20px 60px; display: flex">当前光照: <div id="sunlight"></div></div>
+        <div style="font-size: 15px;margin: 20px 60px; display: flex">当前水质TDS: <div id="sunlight"></div></div>
         <div style="font-size: 15px;margin: 20px 60px; display: flex">当前情况: <div id="personnel"></div></div>
         <button style="margin: 10px 60px;float: right" id="updateButton">更新</button>
     </div>
     <div class="tem2">
         <button id="temperatureButton" style="margin: 20px 100px;">查看温度图形</button>
-        <button id="sunlightButton" style="margin: 0 100px;">查看光照图形</button>
+        <button id="sunlightButton" style="margin: 0 100px;">查看水质TDS图形</button>
         <button id="peopleButton" style="margin: 15px 100px;">查看人员图形</button>
     </div>
     <div class="tem3">
@@ -47,11 +47,11 @@
         <div>
             <div class="row">
                 <div style="font-size: 20px; display: flex">温度_高：</div><div id="tem_h" style="font-size: 20px;"></div>
-                <div style="margin-left: 100px; font-size: 20px; display: flex">光照_高：</div><div id="light_h" style="font-size: 20px;"></div>
+                <div style="margin-left: 100px; font-size: 20px; display: flex">水质TDS_高：</div><div id="light_h" style="font-size: 20px;"></div>
             </div>
             <div class="row">
                 <div style="margin-right:20px;font-size: 20px; display: flex">温度_低：</div><div id="tem_l" style="font-size: 20px;"></div>
-                <div style="margin-left: 100px; font-size: 20px; display: flex">光照_低：</div><div id="light_l" style="font-size: 20px;"></div>
+                <div style="margin-left: 100px; font-size: 20px; display: flex">水质TDS_低：</div><div id="light_l" style="font-size: 20px;"></div>
             </div>
         </div>
     </div>
@@ -65,10 +65,10 @@
                 <input type="text" placeholder="温度_低" id="teml" name="teml" required>
             </div>
             <div class="input-row">
-                <input type="text" placeholder="光照_高" id="lighth" name="lighth" required>
+                <input type="text" placeholder="水质TDS_高" id="TdsH" name="TdsH" required>
             </div>
             <div class="input-row">
-                <input type="text" placeholder="光照_低" id="lightl" name="lightl" required>
+                <input type="text" placeholder="水质TDS_低" id="lightl" name="lightl" required>
             </div>
             <button type="submit" style="font-size: 18px; margin: 0 400px">更新</button>
         </form>

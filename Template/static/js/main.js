@@ -12,15 +12,15 @@ function showPage(pageId) {
     }
 }
 
-// 获取最新温度和光照数据的函数
+// 获取最新温度和水质TDS数据的函数
 function fetchData1() {
     // 发送 GET 请求到后端 API 获取数据
     fetch("http://127.0.0.1:8888/data/check/latestdata")
         .then(response => response.json())
         .then(data => {
-            // 更新页面上的温度和光照数据
+            // 更新页面上的温度和水质TDS数据
             document.getElementById("temperature").textContent = data.temperature + "°C";
-            document.getElementById("sunlight").textContent = data.sunlit + " lux";
+            document.getElementById("sunlight").textContent = data.tds + " lux";
             document.getElementById("personnel").textContent = data.personnel ;
         })
         .catch(error => {
@@ -45,11 +45,11 @@ temperatureButton.addEventListener("click", function() {
 });
 
 sunlightButton.addEventListener("click", function() {
-    window.location.href = "guangzhao.html"; // 跳转到光照图形页面
+    window.location.href = "guangzhao.html"; // 跳转到水质TDS图形页面
 });
 
 peopleButton.addEventListener("click", function() {
-    window.location.href = "people.html"; // 跳转到光照图形页面
+    window.location.href = "people.html"; // 跳转到水质TDS图形页面
 });
 
 //查询历史数据

@@ -70,7 +70,7 @@ func UpdatedateHandler(ctx *gin.Context) {
 	// 从表单中获取要更新的数据字段
 	temperatureH := ctx.PostForm("temh")
 	temperatureL := ctx.PostForm("teml")
-	sunlightH := ctx.PostForm("lighth")
+	sunTdsH := ctx.PostForm("TdsH")
 	sunlightL := ctx.PostForm("lightl")
 	time := ctx.PostForm("time")
 	st := ctx.PostForm("st")
@@ -88,9 +88,9 @@ func UpdatedateHandler(ctx *gin.Context) {
 	//	return
 	//}
 	//
-	//lightH, err := strconv.Atoi(sunlightH)
+	//TdsH, err := strconv.Atoi(sunTdsH)
 	//if err != nil {
-	//	ctx.JSON(http.StatusBadRequest, gin.H{"error": "无法解析 LightH 字段"})
+	//	ctx.JSON(http.StatusBadRequest, gin.H{"error": "无法解析 TdsH 字段"})
 	//	return
 	//}
 	//
@@ -120,10 +120,10 @@ func UpdatedateHandler(ctx *gin.Context) {
 	// 更新记录的字段值
 	status.TemH = temperatureH
 	status.TemL = temperatureL
-	status.LightH = sunlightH
-	status.LightL = sunlightL
+	status.TdsH = sunTdsH
+	//status.LightL = sunlightL
 	status.Time = time
-	status.ST = st
+	//status.ST = st
 
 	// 更新数据库中的记录
 	if err := dataBase.DB.Save(&status).Error; err != nil {
@@ -137,7 +137,7 @@ func UpdatedateHandler(ctx *gin.Context) {
 	jsondata := gin.H{
 		"TemH":   temperatureH,
 		"TemL":   temperatureL,
-		"LightH": sunlightH,
+		"TdsH":   sunTdsH,
 		"LightL": sunlightL,
 		"Tiem":   time,
 		"ST":     st,
@@ -158,21 +158,21 @@ func GetdataHandler(ctx *gin.Context) {
 	}
 
 	// 提取字段的值
-	LightLValue := status.LightL
-	LightHValue := status.LightH
+	//LightLValue := status.LightL
+	TdsHValue := status.TdsH
 	TemLValue := status.TemL
 	TemHValue := status.TemH
 	TimeValue := status.Time
-	STValue := status.ST
+	//STValue := status.ST
 
 	// 构建 JSON 响应
 	response := gin.H{
-		"lightl": LightLValue,
-		"lighth": LightHValue,
-		"temh":   TemHValue,
-		"teml":   TemLValue,
-		"time":   TimeValue,
-		"st":     STValue,
+		//"lightl": LightLValue,
+		"TdsH": TdsHValue,
+		"temh": TemHValue,
+		"teml": TemLValue,
+		"time": TimeValue,
+		//"st":     STValue,
 	}
 
 	// 返回 JSON 响应

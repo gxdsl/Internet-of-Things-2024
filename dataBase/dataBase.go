@@ -8,7 +8,7 @@ import (
 
 var DB *gorm.DB //数据库
 
-type DBSetting struct {
+type DBSeting struct {
 	Type     string
 	User     string
 	Password string
@@ -20,73 +20,59 @@ type DBSetting struct {
 
 type User struct {
 	gorm.Model
-	User     string `gorm:"varchar(10);not null"`
-	Password string `gorm:"not null"`
+	User     string  `gorm:"varchar(10);not null"`
+	Password string  `gorm:"not null"`
+	CardID   string  `gorm:"varchar(8);not null"`
+	Money    float64 `gorm:"not null; check:money >= 0"`
 }
 
 type Data struct {
 	gorm.Model
-	Sunlit      float64 `gorm:"not null" json:"sunlit"`
 	Temperature float64 `gorm:"not null" json:"temperature"`
-	Personnel   string  `gorm:"varchar(15);not null" json:"personnel"`
-	CreatedTime string  `gorm:"not null" json:"created_time"`
-	People      uint16  `gorm:"not null" json:"people"`
-	Day         uint16  `gorm:"not null" json:"day"`
-	//A           uint16  `gorm:"not null" json:"a"`
-	//B           uint16  `gorm:"not null" json:"b"`
-	//C           uint16  `gorm:"not null" json:"c"`
-	//D           uint16  `gorm:"not null" json:"d"`
+	Tds         float64 `gorm:"not null" json:"Tds"`
+	//Personnel   string  `gorm:"varchar(15);not null" json:"personnel"`
+	CreatedTime string `gorm:"not null" json:"created_time"`
+	//People      uint16  `gorm:"not null" json:"people"`
+	//Day         uint16  `gorm:"not null" json:"day"`
 }
 
 type Status struct {
 	gorm.Model
-	Lamp   int    `gorm:"not null"`
-	Loud   int    `gorm:"not null"`
-	TemH   string `gorm:"not null"`
-	TemL   string `gorm:"not null"`
-	LightH string `gorm:"not null"`
-	LightL string `gorm:"not null"`
-	Time   string `gorm:"not null"`
-	ST     string `gorm:"not null"`
+	Lamp int `gorm:"not null"`
+	//Loud   int    `gorm:"not null"`
+	TemH string `gorm:"not null"`
+	TemL string `gorm:"not null"`
+	TdsH string `gorm:"not null"`
+	//LightL string `gorm:"not null"`
+	Time string `gorm:"not null"`
+	//ST     string `gorm:"not null"`
 	//People int `gorm:"not null"`
 }
-
-//type Time struct {
-//	gorm.Model
-//	Time int `gorm:"not null"`
-//	//People int `gorm:"not null"`
-//}
-
-//type File struct {
-//	gorm.Model
-//	Filename string `gorm:"column:filename"` // 文件名
-//	Content  []byte `gorm:"column:content"`  // 文件内容
-//}
 
 // InitDB 连接数据库
 func InitDB() {
 
 	// 创建一个 DBSetting 变量并为其字段赋值
-	dbSettings := DBSetting{
+	dbSeting := DBSeting{
 		Type:     "mysql",
 		User:     "root",
 		Password: "123456",
 		Host:     "127.0.0.1",
 		Port:     "3306",
-		Name:     "database",
-		Charset:  "utf8",
+		Name:     "Cloud",
+		Charset:  "utf8mb4",
 	}
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=True&loc=Local",
-		dbSettings.User,
-		dbSettings.Password,
-		dbSettings.Host,
-		dbSettings.Port,
-		dbSettings.Name,
-		dbSettings.Charset,
+		dbSeting.User,
+		dbSeting.Password,
+		dbSeting.Host,
+		dbSeting.Port,
+		dbSeting.Name,
+		dbSeting.Charset,
 	)
 
-	db, err := gorm.Open(dbSettings.Type, dsn)
+	db, err := gorm.Open(dbSeting.Type, dsn)
 	if err != nil {
 		panic("failed to connect database, err:" + err.Error())
 		return

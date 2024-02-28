@@ -65,7 +65,7 @@ func HandleClient(conn net.Conn) {
 		}
 
 		//{
-		//	"sunlit": 25,
+		//	"tds": 25,
 		//	"temperature": 14,
 		//	"personnel": "1",
 		//	"created_time": "2023-10-1 1:2:11",
@@ -74,19 +74,19 @@ func HandleClient(conn net.Conn) {
 
 		// 创建一个新的 Data 结构并填充字段
 		newData := dataBase.Data{
-			Sunlit:      jsonData["sunlit"].(float64),
+			Tds:         jsonData["tds"].(float64),
 			Temperature: jsonData["temperature"].(float64),
-			Personnel:   jsonData["personnel"].(string),
+			//Personnel:   jsonData["personnel"].(string),
 			CreatedTime: jsonData["created_time"].(string),
 			//People:      jsonData["people"].(uint8),
 			//CreatedTime: jsonData["created_time"].(datetime),
 		}
 
 		// 将字段转换为 uint16
-		peopleFloat := jsonData["people"].(float64)
-		dayFloat := jsonData["day"].(float64)
-		newData.People = uint16(peopleFloat)
-		newData.Day = uint16(dayFloat)
+		//peopleFloat := jsonData["people"].(float64)
+		//dayFloat := jsonData["day"].(float64)
+		//newData.People = uint16(peopleFloat)
+		//newData.Day = uint16(dayFloat)
 		//aFloat := jsonData["a"].(float64)
 		//newData.A = uint16(aFloat)
 		//
@@ -111,8 +111,8 @@ func HandleClient(conn net.Conn) {
 			return
 		}
 
-		fmt.Println("Data inserted into database:", newData.ID, newData.Sunlit, newData.Temperature,
-			newData.People, newData.Personnel, newData.CreatedTime)
+		fmt.Println("Data inserted into database:", newData.ID, newData.Temperature, newData.Tds,
+			newData.CreatedTime)
 
 		//personstatus := jsonData["personnel"].(string)
 		//ReactionHandle(personstatus)

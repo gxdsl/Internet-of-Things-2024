@@ -18,9 +18,9 @@ package routers
 //	//	return
 //	//}
 //	//
-//	//lightH, err := strconv.Atoi(sunlightH)
+//	//TdsH, err := strconv.Atoi(sunTdsH)
 //	//if err != nil {
-//	//	ctx.JSON(http.StatusBadRequest, gin.H{"error": "无法解析 LightH 字段"})
+//	//	ctx.JSON(http.StatusBadRequest, gin.H{"error": "无法解析 TdsH 字段"})
 //	//	return
 //	//}
 //	//

@@ -2,12 +2,12 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>光照图形</title>
+    <title>水质TDS图形</title>
     <script src="echarts.js"></script>
 </head>
 <body>
     <div id="main" style="width: 800px;height:600px;margin: auto;"></div>
-    <pre style="text-align: center;font-size: 20px;">光照折线图     /单位：Lux</pre>
+    <pre style="text-align: center;font-size: 20px;">水质TDS折线图     /单位：Lux</pre>
     <script type="text/javascript">
         function  fetchDataAndRefreshChart() {
             // 基于准备好的 DOM，初始化 ECharts 实例
@@ -24,7 +24,7 @@
                     // 遍历后端返回的数据数组
                     data.forEach(item => {
                         xAxisData.push(item.created_time); // 将每个数据点的 ID 添加到 x 轴数据
-                        sunlightData.push(item.sunlit); // 将温度数据添加到温度数据数组
+                        sunlightData.push(item.tds); // 将温度数据添加到温度数据数组
                     });
 
                     // 使用后端数据构建 ECharts 配置项
@@ -40,7 +40,7 @@
                             {
                                 data: sunlightData, // 使用后端数据替换温度数据
                                 type: 'line',
-                                name: '光照' // 可以设置系列名称
+                                name: '水质TDS' // 可以设置系列名称
                             }
                         ]
                     };

@@ -45,18 +45,18 @@ func CheckLatestdataHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, data)
 }
 
-// SunCheckallHandler 查询所有光照数据
+// SunCheckallHandler 查询所有水质TDS数据
 func SunCheckallHandler(ctx *gin.Context) {
 
-	// 查询单独一列 "sunlit" 数据
-	var sunlitValue []float64
-	result := dataBase.DB.Table("data").Pluck("sunlit", &sunlitValue)
+	// 查询单独一列 "tds" 数据
+	var tdsValue []float64
+	result := dataBase.DB.Table("data").Pluck("tds", &tdsValue)
 	if result.Error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"sunlit": sunlitValue})
+	ctx.JSON(http.StatusOK, gin.H{"tds": tdsValue})
 
 }
 
@@ -70,15 +70,15 @@ func UploadAllHandler(ctx *gin.Context) {
 	}
 
 	////获取表单参数
-	//sunlit := ctx.PostForm("sunlit")
+	//tds := ctx.PostForm("tds")
 	//temperature := ctx.PostForm("temperature")
 	//personnel := ctx.PostForm("personnel")
 
 	//数据验证
-	//if uploaddata.Sunlit == 0.0 {
+	//if uploaddata.tds == 0.0 {
 	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
 	//		"code":    422,
-	//		"message": "Sunlit不为空",
+	//		"message": "tds不为空",
 	//	})
 	//	return
 	//}
@@ -89,19 +89,19 @@ func UploadAllHandler(ctx *gin.Context) {
 	//	})
 	//	return
 	//}
-	if len(uploaddata.Personnel) == 0 {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code":    422,
-			"message": "Personnel不为空",
-		})
-		return
-	}
+	//if len(uploaddata.Personnel) == 0 {
+	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
+	//		"code":    422,
+	//		"message": "Personnel不为空",
+	//	})
+	//	return
+	//}
 
 	//创建用户
 	Upload := dataBase.Data{
-		Sunlit:      uploaddata.Sunlit,
+		Tds:         uploaddata.Tds,
 		Temperature: uploaddata.Temperature,
-		Personnel:   uploaddata.Personnel,
+		//Personnel:   uploaddata.Personnel,
 	}
 	dataBase.DB.Create(&Upload)
 
@@ -112,25 +112,25 @@ func UploadAllHandler(ctx *gin.Context) {
 	})
 }
 
-// SunChecklatestHandler 查询最新的光照数据
+// SunChecklatestHandler 查询最新的水质TDS数据
 func SunChecklatestHandler(ctx *gin.Context) {
-	var sunlitValue []float64
+	var tdsValue []float64
 
-	// 查询最新10条 "sunlit" 数据
-	result := dataBase.DB.Table("data").Select("sunlit").Order("id desc").Limit(1).Pluck("sunlit", &sunlitValue)
+	// 查询最新10条 "tds" 数据
+	result := dataBase.DB.Table("data").Select("tds").Order("id desc").Limit(1).Pluck("tds", &tdsValue)
 	if result.Error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"sunlit": sunlitValue[0]})
+	ctx.JSON(http.StatusOK, gin.H{"tds": tdsValue[0]})
 }
 
 // TemChecklatestHandler 查询最新的温度数据
 func TemChecklatestHandler(ctx *gin.Context) {
 	var temperatureValue []float64
 
-	// 查询最新10条 "sunlit" 数据
+	// 查询最新10条 "tds" 数据
 	result := dataBase.DB.Table("data").Select("temperature").Order("id desc").Limit(1).Pluck("temperature", &temperatureValue)
 	if result.Error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
