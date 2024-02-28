@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>历史数据</title>
+</head>
+<body>
+    <!-- 省略其他 HTML 代码 -->
+<body>
+    <h2 style="text-align: center;">历史数据</h2>
+
+    <table border="1" style="margin: auto;">
+        <thead>
+            <tr>
+                <th>ID</th>
+<!--                <th>CreatedAt</th>-->
+<!--                <th>UpdatedAt</th>-->
+                <th>sunlit</th>
+                <th>temperature</th>
+<!--                <th>personnel</th>-->
+                <th>people</th>
+                <th>created_time</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- 表格内容将在此处动态生成 -->
+        </tbody>
+    </table>
+
+    <script>
+        function  fetchDataAndRefreshChart() {
+            // 获取表格的tbody元素
+            var tableBody = document.getElementById("tableBody");
+
+            // 发送请求到后端API以获取数据
+            fetch("http://127.0.0.1:8888/data/check/alldata")
+                .then(response => response.json())
+                .then(data => {
+                    // 遍历后端返回的数据数组，动态生成表格行
+                    data.forEach(function (item) {
+                        var row = document.createElement("tr");
+
+                        // 创建并设置每个单元格的内容
+                        var idCell = document.createElement("td");
+                        idCell.textContent = item.ID;
+                        row.appendChild(idCell);
+
+                        // var createdAtCell = document.createElement("td");
+                        // createdAtCell.textContent = item.CreatedAt;
+                        // row.appendChild(createdAtCell);
+
+                        // var updatedAtCell = document.createElement("td");
+                        // updatedAtCell.textContent = item.UpdatedAt;
+                        // row.appendChild(updatedAtCell);
+
+                        var sunlightCell = document.createElement("td");
+                        sunlightCell.textContent = item.sunlit;
+                        row.appendChild(sunlightCell);
+
+                        var temperatureCell = document.createElement("td");
+                        temperatureCell.textContent = item.temperature;
+                        row.appendChild(temperatureCell);
+
+                        // var personnelCell = document.createElement("td");
+                        // personnelCell.textContent = item.personnel;
+                        // row.appendChild(personnelCell);
+
+                        var peopleCell = document.createElement("td");
+                        peopleCell.textContent = item.people;
+                        row.appendChild(peopleCell);
+
+                        var createdtimeCell = document.createElement("td");
+                        createdtimeCell.textContent = item.created_time;
+                        row.appendChild(createdtimeCell);
+
+                        // 将行添加到表格的tbody中
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error fetching data:", error);
+                });
+        }
+            // 初始化时获取数据并刷新图表
+            fetchDataAndRefreshChart();
+
+            // 每5秒自动刷新页面
+            setInterval(fetchDataAndRefreshChart, 5000);
+
+    </script>
+</body>
+</body>
+</html>

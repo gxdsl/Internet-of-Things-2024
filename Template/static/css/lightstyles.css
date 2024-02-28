@@ -1,0 +1,20 @@
+/* styles.css */
+
+#lamp {
+    width: 100px;
+    height: 100px;
+    /*background-color: #f1c40f; !* 默认亮度的颜色 *!*/
+    border-radius: 50%;
+    margin: 20px auto;
+    transition: background-color 0.3s;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.on {
+    background-color: #f1c40f; /* 亮的颜色 */
+}
+
+.off {
+    background-color: #ddd; /* 关的颜色 */
+}
+
