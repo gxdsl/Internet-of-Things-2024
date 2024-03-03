@@ -1,0 +1,102 @@
+ul{
+    list-style-type: none; /*清除无序列表前的小点*/
+    width: auto;
+    height: 50px;
+    background: #3b3753;
+    margin: 0px;
+    padding-left: 30%;/*左边距，使li看起来在中间*/
+    /*position: relative;*/
+    text-align: center;
+}
+li{
+    float: left;
+    width: 130px;
+    height: 100%;
+    padding: 0px;
+    margin-right: 1%;  /*两个li之间的距离*/
+}
+a:link,a:visited{ /*鼠标未点击和点击过时的样式*/
+    display: block;
+    color: #FFFFFF;
+    background-color: #3b3753;
+    text-align: center;
+    line-height: 30px; /*li行高*/
+    padding: 10px;
+    text-decoration: none; /*去下划线*/
+}
+a:hover{ /*鼠标移动到点击位时的样式，active指点击过后的样式*/
+    background-color: #111;
+}
+.tem1{
+    width:300px;
+    height:200px;
+    border-style: solid;
+    border-width: 1px;
+    margin: 30px 200px;
+}
+.tem2{
+    width:300px;
+    height:200px;
+    border-style: solid;
+    border-width: 1px;
+    margin: -230px 550px;
+}
+.tem3{
+    width:300px;
+    height:200px;
+    border-style: solid;
+    border-width: 1px;
+    margin: -182px 200px;
+    float: right;
+}
+.tem4{
+    width:300px;
+    height:200px;
+    border-style: solid;
+    border-width: 1px;
+    margin: 200px 550px;
+}
+/* 创建一个容器来水平居中元素 */
+.center-container {
+    text-align: center;
+}
+
+/* 样式化文件上传输入框和提交按钮 */
+#fileInput {
+    display: block;
+    margin: 0 auto; /* 水平居中 */
+    margin-bottom: 10px; /* 添加一些底部间距 */
+}
+
+#uploadButton {
+    display: block;
+    margin: 0 auto; /* 水平居中 */
+}
+
+.row {
+    display: flex;
+    justify-content: center;
+}
+.per2{
+    width:900px;
+    height:400px;
+    border-style: solid;
+    border-width: 1px;
+    margin: 80px 300px;
+}
+.input-row {
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* 水平居中对齐 */
+    margin-bottom: 15px; /* 添加垂直间距 */
+}
+
+input[type="text"] {
+    margin-right: 15px; /* 添加水平间距 */
+    padding: 10px;
+}
+/*body{*/
+/*    background-image:url(login\OIP.jpg);*/
+/*}*/
+

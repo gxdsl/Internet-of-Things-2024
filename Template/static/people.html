@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>人员图形</title>
+    <script src="echarts.js"></script>
+</head>
+<body>
+<div id="main" style="width: 800px;height:600px;margin: auto;"></div>
+<pre style="text-align: center;font-size: 20px;">人员折线图     /单位:人次</pre>
+<script type="text/javascript">
+    function fetchDataAndRefreshChart() {
+        // 基于准备好的 DOM，初始化 ECharts 实例
+        var myChart = echarts.init(document.getElementById('main'));
+
+        // 获取后端数据
+        fetch("http://127.0.0.1:8888/data/check/alldata") // 替换成实际的后端 API 地址
+            .then(response => response.json())
+            .then(data => {
+                // 提取从后端获取的数据
+                var xAxisData = []; // 存储 x 轴数据
+                var temperatureData = []; // 存储温度数据
+
+                // 遍历后端返回的数据数组
+                data.forEach(item => {
+                    xAxisData.push(item.created_time); // 将每个数据点的 ID 添加到 x 轴数据
+                    temperatureData.push(item.people); // 将温度数据添加到温度数据数组
+                });
+
+                // 使用后端数据构建 ECharts 配置项
+                var option = {
+                    xAxis: {
+                        type: 'category',
+                        data: xAxisData // 使用后端数据替换 x 轴数据
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [
+                        {
+                            data: temperatureData, // 使用后端数据替换温度数据
+                            type: 'line',
+                            name: '人次' // 可以设置系列名称
+                        }
+                    ]
+                };
+
+                // 使用配置项设置图表数据
+                myChart.setOption(option);
+            })
+            .catch(error => {
+                console.error("Error fetching data:", error);
+            });
+    }
+    // 初始化时获取数据并刷新图表
+    fetchDataAndRefreshChart();
+
+    // 每5秒自动刷新页面
+    setInterval(fetchDataAndRefreshChart, 5000);
+</script>
+</body>
+</html>
