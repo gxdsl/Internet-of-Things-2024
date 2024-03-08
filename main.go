@@ -43,7 +43,7 @@ func main() {
 		}
 	}()
 
-	hardware.Init()
+	hardware.TCPServerInit()
 }
 
 func ShowIP() {

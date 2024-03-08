@@ -9,13 +9,14 @@ import (
 
 var globalConn net.Conn
 
-func Init() {
-	// 创建第二个Gin引擎实例，监听端口9999
+func TCPServerInit() {
+	// 创建TCP服务器，监听端口9999
 	listener, err := net.Listen("tcp", "0.0.0.0:9999")
 	if err != nil {
 		fmt.Println("Error listening:", err)
 		return
 	}
+
 	defer func(listener net.Listener) {
 		err := listener.Close()
 		if err != nil {
@@ -23,6 +24,7 @@ func Init() {
 		}
 	}(listener)
 	fmt.Println("Server is listening on :9999")
+
 	for {
 		// 等待客户端连接
 		conn, err := listener.Accept()
@@ -148,18 +150,18 @@ func Send(Data interface{}) {
 	}
 }
 
-func Sendaudio(File interface{}) {
-	jsonaudio, err := json.Marshal(File)
-	if err != nil {
-		fmt.Println("Error encoding JSON:", err)
-		return
-	}
-	type audio struct {
-	}
-	// 发送 JSON 字符串到客户端连接
-	_, err = globalConn.Write(jsonaudio)
-	if err != nil {
-		fmt.Println("Error sending JSON data:", err)
-		return
-	}
-}
+//func Sendaudio(File interface{}) {
+//	jsonaudio, err := json.Marshal(File)
+//	if err != nil {
+//		fmt.Println("Error encoding JSON:", err)
+//		return
+//	}
+//	type audio struct {
+//	}
+//	// 发送 JSON 字符串到客户端连接
+//	_, err = globalConn.Write(jsonaudio)
+//	if err != nil {
+//		fmt.Println("Error sending JSON data:", err)
+//		return
+//	}
+//}
