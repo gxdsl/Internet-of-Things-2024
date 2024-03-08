@@ -1,22 +1,13 @@
 package hardware
 
 import (
+	"Server_Go/dataBase"
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 )
-
-// Data 表示水质和温度数据
-type Data struct {
-	Tds         int `json:"tds"`
-	Temperature int `json:"temperature"`
-}
-
-// User 表示用户数据
-type User struct {
-	UserID int `json:"userid"`
-	Money  int `json:"money"`
-}
 
 var globalConn net.Conn
 
@@ -48,57 +39,90 @@ func HandleClient(conn net.Conn) {
 	defer conn.Close()
 
 	// 创建一个缓冲区来存储接收到的数据
-	buffer := make([]byte, 2048)
+	var buffer bytes.Buffer
 
-	// 从连接中读取数据
-	n, err := conn.Read(buffer)
-	if err != nil {
-		fmt.Println("Error reading data:", err)
-		return
-	}
+	for {
+		// 从连接中读取数据
+		tmpBuffer := make([]byte, 2048)
+		n, err := conn.Read(tmpBuffer)
+		if err != nil {
+			if err != io.EOF {
+				fmt.Println("Error reading data:", err)
+			}
+			break // 退出循环
+		}
 
-	// 解析 JSON 数据
-	var jsonData map[string]interface{}
-	if err := json.Unmarshal(buffer[:n], &jsonData); err != nil {
-		fmt.Println("Error decoding JSON:", err)
-		return
-	}
+		// 将读取到的数据追加到缓冲区中
+		buffer.Write(tmpBuffer[:n])
 
-	// 根据数据类型执行不同操作
-	switch {
-	case jsonData["tds"] != nil && jsonData["temperature"] != nil:
-		handleWaterAndTemperatureData(buffer[:n])
-	case jsonData["userid"] != nil && jsonData["money"] != nil:
-		handleUserData(buffer[:n])
-	default:
-		fmt.Println("Unknown data type")
+		// 尝试解析 JSON 数据
+		var jsonData map[string]interface{}
+		if err := json.Unmarshal(buffer.Bytes(), &jsonData); err != nil {
+			fmt.Println("Error decoding JSON:", err)
+			buffer.Reset() // 清空缓冲区
+			continue       // 继续等待数据
+		}
+
+		// 根据Json数据类型执行不同操作
+		switch {
+		case jsonData["tds"] != nil && jsonData["temperature"] != nil:
+			WaterHandler(buffer.Bytes())
+		case jsonData["cardid"] != nil && jsonData["money"] != nil:
+			MoneyHandler(buffer.Bytes())
+		default:
+			fmt.Println("Unknown data type")
+		}
+
+		// 从缓冲区中移除已处理的数据
+		buffer.Next(len(buffer.Bytes()))
 	}
 }
 
-// 处理水质和温度数据
-func handleWaterAndTemperatureData(data []byte) {
-	var d Data
-	if err := json.Unmarshal(data, &d); err != nil {
+// WaterHandler 处理水质和温度数据
+func WaterHandler(data []byte) {
+	var jsonData dataBase.Data
+
+	// 解析 JSON 数据到 Data 结构
+	if err := json.Unmarshal(data, &jsonData); err != nil {
 		fmt.Println("Error decoding water and temperature data:", err)
 		return
 	}
 
-	// 在这里插入到数据库表data中
-	fmt.Println("TDS:", d.Tds)
-	fmt.Println("Temperature:", d.Temperature)
-}
-
-// 处理用户数据
-func handleUserData(data []byte) {
-	var u User
-	if err := json.Unmarshal(data, &u); err != nil {
-		fmt.Println("Error decoding user data:", err)
+	// 插入数据到数据库表中
+	if err := dataBase.DB.Create(&jsonData).Error; err != nil {
+		fmt.Println("Error inserting data into database:", err)
 		return
 	}
 
-	// 在这里根据UserID找到对应的用户，并修改money列
-	fmt.Println("UserID:", u.UserID)
-	fmt.Println("Money:", u.Money)
+	fmt.Println("Data inserted into database:", jsonData.Temperature, jsonData.Tds)
+}
+
+// MoneyHandler 处理用户卡余额消费
+func MoneyHandler(data []byte) {
+	var jsonData dataBase.User
+
+	// 解析 JSON 数据到 User 结构
+	if err := json.Unmarshal(data, &jsonData); err != nil {
+		fmt.Println("解码用户数据出错:", err)
+		return
+	}
+
+	// 在这里根据 CardID 找到对应的用户，并修改 Money 列
+	var user dataBase.User
+	if err := dataBase.DB.Where("card_id = ?", jsonData.CardID).First(&user).Error; err != nil {
+		fmt.Println("查找用户出错:", err)
+		return
+	}
+
+	// 更新用户的 Money 列
+	user.Money = jsonData.Money
+	if err := dataBase.DB.Save(&user).Error; err != nil {
+		fmt.Println("更新用户余额出错:", err)
+		return
+	}
+
+	// 打印更改完成的信息
+	fmt.Printf("%s，卡号为 %s 的用户 %s 的余额为 %f\n", user.UpdatedAt, user.CardID, user.User, user.Money)
 }
 
 func Send(Data interface{}) {

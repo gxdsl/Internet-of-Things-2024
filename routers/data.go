@@ -19,11 +19,6 @@ func CheckAllHandler(ctx *gin.Context) {
 		return
 	}
 
-	//// 构建 JSON 响应
-	//response := gin.H{
-	//	"data": data,
-	//}
-
 	// 将 JSON 响应输出到客户端
 	ctx.JSON(http.StatusOK, data)
 
@@ -69,39 +64,10 @@ func UploadAllHandler(ctx *gin.Context) {
 		return
 	}
 
-	////获取表单参数
-	//tds := ctx.PostForm("tds")
-	//temperature := ctx.PostForm("temperature")
-	//personnel := ctx.PostForm("personnel")
-
-	//数据验证
-	//if uploaddata.tds == 0.0 {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-	//		"code":    422,
-	//		"message": "tds不为空",
-	//	})
-	//	return
-	//}
-	//if uploaddata.Temperature == 0.0 {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-	//		"code":    422,
-	//		"message": "Temperature不为空",
-	//	})
-	//	return
-	//}
-	//if len(uploaddata.Personnel) == 0 {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-	//		"code":    422,
-	//		"message": "Personnel不为空",
-	//	})
-	//	return
-	//}
-
 	//创建用户
 	Upload := dataBase.Data{
 		Tds:         uploaddata.Tds,
 		Temperature: uploaddata.Temperature,
-		//Personnel:   uploaddata.Personnel,
 	}
 	dataBase.DB.Create(&Upload)
 

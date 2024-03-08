@@ -30,10 +30,7 @@ type Data struct {
 	gorm.Model
 	Temperature float64 `gorm:"not null" json:"temperature"`
 	Tds         float64 `gorm:"not null" json:"Tds"`
-	//Personnel   string  `gorm:"varchar(15);not null" json:"personnel"`
-	CreatedTime string `gorm:"not null" json:"created_time"`
-	//People      uint16  `gorm:"not null" json:"people"`
-	//Day         uint16  `gorm:"not null" json:"day"`
+	//CreatedTime string `gorm:"not null" json:"created_time"`
 }
 
 type Status struct {
