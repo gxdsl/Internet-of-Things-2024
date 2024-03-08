@@ -4,6 +4,7 @@ import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
+	"time"
 )
 
 var DB *gorm.DB //数据库
@@ -18,32 +19,41 @@ type DBSeting struct {
 	Charset  string
 }
 
+// WaterDispenser 表结构：饮水机表
+type WaterDispenser struct {
+	ID          uint   `gorm:"primaryKey"` // 主键
+	DispenserID string // 饮水机ID
+	Model       string // 型号
+	Location    string // 安装位置
+}
+
+// User 表结构：用户表
 type User struct {
-	gorm.Model
-	User     string  `gorm:"varchar(10);not null"`
-	Password string  `gorm:"not null"`
-	CardID   string  `gorm:"varchar(8);not null"`
-	Money    float64 `gorm:"not null; check:money >= 0"`
+	ID       uint    `gorm:"primaryKey"` // 主键
+	User     string  // 用户名
+	Password string  // 密码
+	Card     string  //卡号
+	Balance  float64 // 余额
 }
 
-type Data struct {
-	gorm.Model
-	Temperature float64 `gorm:"not null" json:"temperature"`
-	Tds         float64 `gorm:"not null" json:"Tds"`
-	//CreatedTime string `gorm:"not null" json:"created_time"`
+// Transaction 表结构：消费记录表
+type Transaction struct {
+	ID              uint      `gorm:"primaryKey"` // 主键
+	User            string    // 用户
+	DispenserID     uint      // 饮水机ID
+	Amount          float64   // 金额
+	TransactionTime time.Time `gorm:"default:CURRENT_TIMESTAMP"` // 消费时间，默认为当前时间
 }
 
-type Status struct {
-	gorm.Model
-	Lamp int `gorm:"not null"`
-	//Loud   int    `gorm:"not null"`
-	TemH string `gorm:"not null"`
-	TemL string `gorm:"not null"`
-	TdsH string `gorm:"not null"`
-	//LightL string `gorm:"not null"`
-	Time string `gorm:"not null"`
-	//ST     string `gorm:"not null"`
-	//People int `gorm:"not null"`
+// DispenserStatus 表结构：饮水机状态表
+type DispenserStatus struct {
+	ID          uint      `gorm:"primaryKey"` // 主键
+	DispenserID uint      // 饮水机ID
+	Status      string    // 状态
+	Temperature float64   // 水温
+	TDS         float64   // TDS水质
+	Flow        bool      // 是否出水状态
+	RecordTime  time.Time `gorm:"default:CURRENT_TIMESTAMP"` // 记录时间，默认为当前时间
 }
 
 // InitDB 连接数据库
@@ -78,7 +88,8 @@ func InitDB() {
 		fmt.Println("DSN:", dsn)
 	}
 
-	db.AutoMigrate(&User{}, &Data{}, &Status{})
+	// 自动迁移表结构
+	db.AutoMigrate(&WaterDispenser{}, &Transaction{}, &User{}, &DispenserStatus{})
 
 	DB = db
 }

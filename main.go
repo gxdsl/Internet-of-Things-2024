@@ -3,7 +3,6 @@ package main
 import (
 	"Server_Go/dataBase"
 	"Server_Go/hardware"
-	"Server_Go/routers"
 	"fmt"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -28,7 +27,8 @@ func main() {
 	ginServer.Use(cors.New(config))
 
 	// 运行路由组
-	routers.GroupNestd(ginServer)
+	//routers.GroupNestd(ginServer)
+
 	// 设置服务器的 IP 地址和端口
 	serverIP := "0.0.0.0"
 	//serverIP := "127.0.0.1"
