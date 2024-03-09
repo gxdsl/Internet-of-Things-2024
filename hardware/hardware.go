@@ -66,7 +66,8 @@ func HandleClient(conn net.Conn) {
 
 		// 根据Json数据类型执行不同操作
 		switch {
-		case jsonData["dispenser_id"] != nil && jsonData["tds"] != nil && jsonData["temperature"] != nil && jsonData["flow"] != nil:
+		case jsonData["dispenser_id"] != nil && jsonData["tds"] != nil && jsonData["temperature"] != nil &&
+			jsonData["flow"] != nil && jsonData["status"] != nil:
 			WaterHandler(buffer.Bytes())
 		case jsonData["dispenser_id"] != nil && jsonData["card"] != nil && jsonData["amount"] != nil:
 			MoneyHandler(buffer.Bytes())
@@ -83,6 +84,7 @@ func HandleClient(conn net.Conn) {
 func WaterHandler(data []byte) {
 	var jsonData struct {
 		DispenserID uint `json:"dispenser_id"`
+		Status      string
 		TDS         float64
 		Temperature float64
 		Flow        bool
@@ -97,6 +99,7 @@ func WaterHandler(data []byte) {
 	// 创建 DispenserStatus 对象
 	status := dataBase.DispenserStatus{
 		DispenserID: jsonData.DispenserID,
+		Status:      jsonData.Status,
 		TDS:         jsonData.TDS,
 		Temperature: jsonData.Temperature,
 		Flow:        jsonData.Flow,
@@ -109,7 +112,7 @@ func WaterHandler(data []byte) {
 	}
 
 	//打印插入的数据
-	fmt.Println("Data inserted into database:", status.DispenserID, status.Temperature, status.TDS, status.Flow)
+	fmt.Println("Data inserted into database:", status.DispenserID, status.Status, status.Temperature, status.TDS, status.Flow)
 }
 
 // MoneyHandler 处理消费金额

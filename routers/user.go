@@ -2,9 +2,12 @@ package routers
 
 import (
 	"Server_Go/dataBase"
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"net/http"
+	"strconv"
 )
 
 // LoginHandler 处理用户登录请求
@@ -248,4 +251,156 @@ func ModifyHandler(ctx *gin.Context) {
 		"code":    http.StatusOK,
 		"message": "密码更新成功",
 	})
+}
+
+// RechargeHandler 充值处理器
+func RechargeHandler(ctx *gin.Context) {
+	// 获取表单参数
+	username := ctx.PostForm("user")
+	rechargeAmount, err := strconv.ParseFloat(ctx.PostForm("balance"), 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "充值金额格式错误",
+		})
+		return
+	}
+
+	// 查询用户
+	var user dataBase.User
+	if err := dataBase.DB.Where("user = ?", username).First(&user).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"code":    http.StatusNotFound,
+				"message": "用户不存在",
+			})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"code":    http.StatusInternalServerError,
+				"message": "查询用户失败",
+			})
+		}
+		return
+	}
+
+	// 更新余额
+	user.Balance += rechargeAmount
+	if err := dataBase.DB.Save(&user).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "充值失败",
+		})
+		return
+	}
+
+	// 返回充值成功信息
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "充值成功",
+		"balance": user.Balance,
+	})
+}
+
+// UserlatestHandler 查询用户最新消费数据
+func UserlatestHandler(ctx *gin.Context) {
+	// 从表单数据中获取用户信息
+	user := ctx.PostForm("user")
+
+	// 数据验证
+	if len(user) == 0 {
+		// 如果用户名为空，返回400 Bad Request状态码和错误消息
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "用户名不能为空",
+		})
+		return
+	}
+
+	// 查询用户是否存在
+	if err := dataBase.DB.Where("user = ?", user).First(&dataBase.User{}).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// 如果用户不存在，返回404 Not Found状态码和错误消息
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"code":    http.StatusNotFound,
+				"message": fmt.Sprintf("未找到用户 '%s'", user),
+			})
+			return
+		}
+		// 如果查询用户存在时出错，返回500 Internal Server Error状态码和错误消息
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "查询用户时出错",
+		})
+		return
+	}
+
+	// 查询用户最新的一条消费记录
+	var latestTransaction dataBase.Transaction
+	if err := dataBase.DB.Where("user = ?", user).Order("transaction_time desc").First(&latestTransaction).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// 如果用户无消费记录，返回404 Not Found状态码和错误消息
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"code":    http.StatusNotFound,
+				"message": fmt.Sprintf("用户 '%s' 无消费记录", user),
+			})
+			return
+		}
+		// 如果查询用户消费记录时出错，返回500 Internal Server Error状态码和错误消息
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "查询用户最新消费记录时出错",
+		})
+		return
+	}
+
+	// 返回查询结果
+	ctx.JSON(http.StatusOK, latestTransaction)
+}
+
+// UserlistHandler 查询用户最新20条消费记录
+func UserlistHandler(ctx *gin.Context) {
+	// 从表单数据中获取用户信息
+	user := ctx.PostForm("user")
+
+	// 数据验证
+	if len(user) == 0 {
+		// 如果用户名为空，返回400 Bad Request状态码和错误消息
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "用户名不能为空",
+		})
+		return
+	}
+
+	// 查询用户是否存在
+	if err := dataBase.DB.Where("user = ?", user).First(&dataBase.User{}).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// 如果用户不存在，返回404 Not Found状态码和错误消息
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"code":    http.StatusNotFound,
+				"message": fmt.Sprintf("未找到用户 '%s'", user),
+			})
+			return
+		}
+		// 如果查询用户存在时出错，返回500 Internal Server Error状态码和错误消息
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "查询用户时出错",
+		})
+		return
+	}
+
+	// 查询用户最新的20条消费记录
+	var latestTransactions []dataBase.Transaction
+	if err := dataBase.DB.Where("user = ?", user).Order("id desc").Limit(20).Find(&latestTransactions).Error; err != nil {
+		// 如果查询用户消费记录时出错，返回500 Internal Server Error状态码和错误消息
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "查询用户最新20条消费记录时出错",
+		})
+		return
+	}
+
+	// 返回查询结果
+	ctx.JSON(http.StatusOK, latestTransactions)
 }

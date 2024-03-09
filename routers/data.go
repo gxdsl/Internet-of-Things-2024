@@ -2,14 +2,17 @@ package routers
 
 import (
 	"Server_Go/dataBase"
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"math"
 	"net/http"
 )
 
-// CheckAllHandler 查询所有数据
-func CheckAllHandler(ctx *gin.Context) {
-	var data []dataBase.Data
+// ChecklistHandler 查询最新20条数据
+func ChecklistHandler(ctx *gin.Context) {
+	var data []dataBase.DispenserStatus
 
 	// 使用 GORM 进行查询最新20条数据
 	if err := dataBase.DB.Order("id desc").Limit(20).Find(&data).Error; err != nil {
@@ -21,12 +24,11 @@ func CheckAllHandler(ctx *gin.Context) {
 
 	// 将 JSON 响应输出到客户端
 	ctx.JSON(http.StatusOK, data)
-
 }
 
-// CheckLatestdataHandler 查询最新数据
-func CheckLatestdataHandler(ctx *gin.Context) {
-	var data dataBase.Data
+// ChecklatestHandler 查询最新数据
+func ChecklatestHandler(ctx *gin.Context) {
+	var data dataBase.DispenserStatus
 
 	// 使用 GORM 进行查询最新数据
 	if err := dataBase.DB.Order("id desc").Limit(1).Find(&data).Error; err != nil {
@@ -40,50 +42,13 @@ func CheckLatestdataHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, data)
 }
 
-// SunCheckallHandler 查询所有水质TDS数据
-func SunCheckallHandler(ctx *gin.Context) {
-
-	// 查询单独一列 "tds" 数据
-	var tdsValue []float64
-	result := dataBase.DB.Table("data").Pluck("tds", &tdsValue)
-	if result.Error != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
-		return
-	}
-
-	ctx.JSON(http.StatusOK, gin.H{"tds": tdsValue})
-
-}
-
-func UploadAllHandler(ctx *gin.Context) {
-
-	//获取JSON数据
-	var uploaddata dataBase.Data
-	if err := ctx.ShouldBindJSON(&uploaddata); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	//创建用户
-	Upload := dataBase.Data{
-		Tds:         uploaddata.Tds,
-		Temperature: uploaddata.Temperature,
-	}
-	dataBase.DB.Create(&Upload)
-
-	//返回结果
-	ctx.JSON(http.StatusOK, gin.H{
-		"code":    200,
-		"message": "上传成功",
-	})
-}
-
-// SunChecklatestHandler 查询最新的水质TDS数据
-func SunChecklatestHandler(ctx *gin.Context) {
+// TDSlatestHandler 查询最新的水质TDS数据
+func TDSlatestHandler(ctx *gin.Context) {
 	var tdsValue []float64
 
 	// 查询最新10条 "tds" 数据
-	result := dataBase.DB.Table("data").Select("tds").Order("id desc").Limit(1).Pluck("tds", &tdsValue)
+	result := dataBase.DB.Table("dispenser_statuses").Select("tds").Order("id desc").
+		Limit(1).Pluck("tds", &tdsValue)
 	if result.Error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
 		return
@@ -92,12 +57,13 @@ func SunChecklatestHandler(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"tds": tdsValue[0]})
 }
 
-// TemChecklatestHandler 查询最新的温度数据
-func TemChecklatestHandler(ctx *gin.Context) {
+// TemplatestHandler 查询最新的温度数据
+func TemplatestHandler(ctx *gin.Context) {
 	var temperatureValue []float64
 
 	// 查询最新10条 "tds" 数据
-	result := dataBase.DB.Table("data").Select("temperature").Order("id desc").Limit(1).Pluck("temperature", &temperatureValue)
+	result := dataBase.DB.Table("dispenser_statuses").Select("temperature").Order("id desc").
+		Limit(1).Pluck("temperature", &temperatureValue)
 	if result.Error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
 		return
@@ -107,58 +73,51 @@ func TemChecklatestHandler(ctx *gin.Context) {
 	//ctx.JSON(http.StatusOK, gin.H{"temperature": temperatureValue[0]})
 }
 
-//// UploadFileHandler 上传文件
-//func UploadFileHandler(c *gin.Context) {
-//	// 从请求中获取上传的文件
-//	file, err := c.FormFile("file")
-//	if err != nil {
-//		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-//		return
-//	}
-//	// 打开上传的文件
-//	uploadedFile, err := file.Open()
-//	if err != nil {
-//		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-//		return
-//	}
-//	defer func(uploadedFile multipart.File) {
-//		err := uploadedFile.Close()
-//		if err != nil {
-//
-//		}
-//	}(uploadedFile)
-//	// 读取文件内容
-//	fileData, err := ioutil.ReadAll(uploadedFile)
-//	if err != nil {
-//		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-//		return
-//	}
-//	// 将文件内容存入数据库（假设你有一个名为File的模型来表示文件）
-//	newFile := dataBase.File{
-//		Filename: file.Filename,
-//		Content:  fileData,
-//	}
-//	if err := dataBase.DB.Create(&newFile).Error; err != nil {
-//		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-//		return
-//	}
-//
-//	c.JSON(http.StatusOK, gin.H{"message": "File uploaded and saved to  database successfully"})
-//}
+// DeviceslistHandler 查询设备最新20条消费记录
+func DeviceslistHandler(ctx *gin.Context) {
+	// 从表单数据中获取设备ID
+	deviceID := ctx.PostForm("device")
 
-//func DownloadFileHandler(c *gin.Context) {
-//
-//	var file dataBase.File
-//
-//	// 按照时间戳字段降序排序，选择第一条记录（最新的数据）
-//	if err := dataBase.DB.Order("created_at DESC").Last(&file).Error; err != nil {
-//		// 处理数据库查询错误
-//		c.JSON(http.StatusInternalServerError, gin.H{
-//			"error": "无法查询数据库",
-//		})
-//		return
-//	}
-//	c.JSON(http.StatusOK, file)
-//	hardware.Send(file)
-//
-//}
+	// 数据验证
+	if len(deviceID) == 0 {
+		// 如果设备ID为空，返回400 Bad Request状态码和错误消息
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "设备ID不能为空",
+		})
+		return
+	}
+
+	// 查询设备是否存在
+	if err := dataBase.DB.Where("id = ?", deviceID).First(&dataBase.WaterDispenser{}).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// 如果设备不存在，返回404 Not Found状态码和错误消息
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"code":    http.StatusNotFound,
+				"message": fmt.Sprintf("未找到设备 '%s'", deviceID),
+			})
+			return
+		}
+		// 如果查询设备存在时出错，返回500 Internal Server Error状态码和错误消息
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "查询设备时出错",
+		})
+		return
+	}
+
+	// 查询设备最新的20条消费记录，按照ID字段的倒序排列
+	var latestTransactions []dataBase.Transaction
+	if err := dataBase.DB.Where("dispenser_id = ?", deviceID).Order("id desc").
+		Limit(20).Find(&latestTransactions).Error; err != nil {
+		// 如果查询设备消费记录时出错，返回500 Internal Server Error状态码和错误消息
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "查询设备最新20条消费记录时出错",
+		})
+		return
+	}
+
+	// 返回查询结果
+	ctx.JSON(http.StatusOK, latestTransactions)
+}
