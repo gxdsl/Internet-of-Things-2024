@@ -4,43 +4,44 @@
 
 ### 数据库结构
 
-**饮水机表（WaterDispenser）**：
+**WaterDispenser 表结构**
 
-| 字段名         | 类型   | 描述     |
-| :------------: | :----: | :------: |
-| `id` 			| 主键   | 记录ID |
-| `dispenser_id` | 数值   | 饮水机ID |
-| `model`        | 字符串 | 型号     |
-| `location`     | 字符串 | 安装位置 |
+| **字段名**    | **类型** | **描述**   |
+| ------------- | -------- | ---------- |
+| `ID`          | uint     | 主键       |
+| `Price`       | float64  | 价格 元/升 |
+| `DispenserID` | string   | 饮水机ID   |
+| `Model`       | string   | 型号       |
+| `Location`    | string   | 安装位置   |
 
-**消费记录表（Transaction）**：
+**User 表结构**
 
-|       字段名       |   类型   |   描述   |
-| :----------------: | :------: | :------: |
-|        `id`        |   主键   |  记录ID  |
-|       `user`       |  字符串  |   用户   |
-|   `dispenser_id`   |   外键   | 饮水机ID |
-|      `amount`      |   数值   |   金额   |
-| `transaction_time` | 日期时间 | 消费时间 |
+| **字段名** | **类型** | **描述** |
+| ---------- | -------- | -------- |
+| `ID`       | uint     | 主键     |
+| `User`     | string   | 用户名   |
+| `Password` | string   | 密码     |
+| `Card`     | string   | 卡号     |
+| `Balance`  | float64  | 余额     |
 
-**用户表（User）**：
+**Transaction 表结构**
+| **字段名**        | **类型**  | **描述**                 |
+| ----------------- | --------- | ------------------------ |
+| `ID`              | uint      | 主键                     |
+| `User`            | string    | 用户                     |
+| `DispenserID`     | uint      | 饮水机ID                 |
+| `Amount`          | float64   | 金额                     |
+| `TransactionTime` | time.Time | 消费时间，默认为当前时间 |
 
-|   字段名   |  类型  |  描述  |
-| :--------: | :----: | :----: |
-|    `id`    |  主键  | 用户ID |
-|   `user`   | 字符串 | 用户名 |
-| `password` | 字符串 |  密码  |
-| `balance`  |  数值  |  余额  |
+**DispenserStatus 表结构**
 
-**饮水机状态表（DispenserStatus）**：
-
-|     字段名     |   类型   |     描述     |
-| :------------: | :------: | :----------: |
-|      `id`      |   主键   |    记录ID    |
-| `dispenser_id` |   外键   |   饮水机ID   |
-|    `status`    |  字符串  |     状态     |
-| `temperature`  |   数值   |     水温     |
-|     `tds`      |   数值   |   TDS水质    |
-|     `flow`     |  布尔值  | 是否出水状态 |
-| `record_time`  | 日期时间 |   记录时间   |
+| **字段名**    | **类型**  | **描述**                 |
+| ------------- | --------- | ------------------------ |
+| `ID`          | uint      | 主键                     |
+| `DispenserID` | uint      | 饮水机ID                 |
+| `Status`      | string    | 状态                     |
+| `Temperature` | float64   | 水温                     |
+| `TDS`         | float64   | TDS水质                  |
+| `Flow`        | bool      | 是否出水状态             |
+| `RecordTime`  | time.Time | 记录时间，默认为当前时间 |
 

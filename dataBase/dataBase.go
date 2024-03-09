@@ -21,10 +21,11 @@ type DBSeting struct {
 
 // WaterDispenser 表结构：饮水机表
 type WaterDispenser struct {
-	ID          uint   `gorm:"primaryKey"` // 主键
-	DispenserID string // 饮水机ID
-	Model       string // 型号
-	Location    string // 安装位置
+	ID          uint    `gorm:"primaryKey"` // 主键
+	Price       float64 // 价格 元/升
+	DispenserID string  // 饮水机ID
+	Model       string  // 型号
+	Location    string  // 安装位置
 }
 
 // User 表结构：用户表

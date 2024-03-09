@@ -68,8 +68,8 @@ func HandleClient(conn net.Conn) {
 		switch {
 		case jsonData["dispenser_id"] != nil && jsonData["tds"] != nil && jsonData["temperature"] != nil && jsonData["flow"] != nil:
 			WaterHandler(buffer.Bytes())
-		case jsonData["cardid"] != nil && jsonData["money"] != nil:
-			//MoneyHandler(buffer.Bytes())
+		case jsonData["dispenser_id"] != nil && jsonData["card"] != nil && jsonData["amount"] != nil:
+			MoneyHandler(buffer.Bytes())
 		default:
 			fmt.Println("Unknown data type")
 		}
@@ -112,33 +112,69 @@ func WaterHandler(data []byte) {
 	fmt.Println("Data inserted into database:", status.DispenserID, status.Temperature, status.TDS, status.Flow)
 }
 
-//// MoneyHandler 处理用户卡余额消费
-//func MoneyHandler(data []byte) {
-//	var jsonData dataBase.User
-//
-//	// 解析 JSON 数据到 User 结构
-//	if err := json.Unmarshal(data, &jsonData); err != nil {
-//		fmt.Println("解码用户数据出错:", err)
-//		return
-//	}
-//
-//	// 在这里根据 CardID 找到对应的用户，并修改 Money 列
-//	var user dataBase.User
-//	if err := dataBase.DB.Where("card_id = ?", jsonData.Card).First(&user).Error; err != nil {
-//		fmt.Println("查找用户出错:", err)
-//		return
-//	}
-//
-//	// 更新用户的 Money 列
-//	user.Money = jsonData.Money
-//	if err := dataBase.DB.Save(&user).Error; err != nil {
-//		fmt.Println("更新用户余额出错:", err)
-//		return
-//	}
-//
-//	// 打印更改完成的信息
-//	fmt.Printf("%s，卡号为 %s 的用户 %s 的余额为 %f\n", user.UpdatedAt, user.CardID, user.User, user.Money)
-//}
+// MoneyHandler 处理消费金额
+func MoneyHandler(data []byte) {
+	var jsonData map[string]interface{}
+
+	// 解析 JSON 数据
+	if err := json.Unmarshal(data, &jsonData); err != nil {
+		fmt.Println("Error decoding JSON:", err)
+		return
+	}
+
+	// 获取饮水机ID和用水量
+	dispenserID, ok1 := jsonData["dispenser_id"].(float64)
+	amount, ok2 := jsonData["amount"].(float64)
+	if !ok1 || !ok2 {
+		fmt.Println("Invalid JSON format")
+		return
+	}
+
+	// 根据饮水机ID查找饮水机的单价
+	var waterDispenser dataBase.WaterDispenser
+	if err := dataBase.DB.Where("id = ?", uint(dispenserID)).First(&waterDispenser).Error; err != nil {
+		fmt.Println("Error querying water dispenser:", err)
+		return
+	}
+
+	// 计算消费金额
+	price := waterDispenser.Price
+	totalAmount := amount * price
+
+	// 获取用户卡号
+	card, ok := jsonData["card"].(string)
+	if !ok {
+		fmt.Println("Invalid JSON format")
+		return
+	}
+
+	// 根据卡号查找用户
+	var user dataBase.User
+	if err := dataBase.DB.Where("card = ?", card).First(&user).Error; err != nil {
+		fmt.Println("Error querying user:", err)
+		return
+	}
+
+	// 更新用户余额
+	user.Balance -= totalAmount
+	if err := dataBase.DB.Save(&user).Error; err != nil {
+		fmt.Println("Error updating user balance:", err)
+		return
+	}
+
+	// 插入消费记录
+	transaction := dataBase.Transaction{
+		User:        user.User,
+		DispenserID: uint(dispenserID),
+		Amount:      totalAmount,
+	}
+	if err := dataBase.DB.Create(&transaction).Error; err != nil {
+		fmt.Println("Error inserting transaction:", err)
+		return
+	}
+
+	fmt.Println("Transaction completed:", transaction)
+}
 
 func Send(Data interface{}) {
 	// 序列化 JSON 对象为 JSON 字符串
