@@ -3,140 +3,126 @@ package routers
 import (
 	"Server_Go/dataBase"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/jinzhu/gorm"
 	"net/http"
 )
 
-// LoginHandler 用户登录
+// LoginHandler 处理用户登录请求
 func LoginHandler(ctx *gin.Context) {
-	////获取JSON数据
-	//var newuser dataBase.User
-	//if err := ctx.ShouldBindJSON(&newuser); err != nil {
-	//	ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	//	return
-	//}
-
-	//获取表单参数
+	// 获取表单参数
 	name := ctx.PostForm("user")
 	password := ctx.PostForm("password")
 
-	////数据验证
-	//if len(name) == 0 {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-	//		"code":    422,
-	//		"message": "用户名不为空",
-	//	})
-	//	return
-	//}
-	//if len(password) < 6 {
-	//	ctx.JSON(http.StatusNotAcceptable, gin.H{
-	//		"code":    406,
-	//		"message": "密码不能少于6位",
-	//	})
-	//	return
-	//}
-
 	// 数据验证
 	if len(name) == 0 || len(password) < 6 {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"code": 422, "message": "用户名不能为空且密码不能少于6位"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"code": http.StatusBadRequest, "message": "用户名不能为空且密码长度不能少于6位"})
 		return
 	}
 
-	//判断用户名是否存在
+	// 检查用户名是否存在
 	var user dataBase.User
-	dataBase.DB.Where("user = ?", name).First(&user)
-	if user.ID == 0 {
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"code":    404,
-			"message": "用户名不存在",
-		})
+	if err := dataBase.DB.Where("user = ?", name).First(&user).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"code":    http.StatusNotFound,
+				"message": "用户名不存在",
+			})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"code":    http.StatusInternalServerError,
+				"message": "数据库查询失败",
+			})
+		}
 		return
 	}
 
-	//判断密码是否正确
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		ctx.JSON(http.StatusForbidden, gin.H{
-			"code":    403,
-			"message": "密码错误",
-		})
+	// 检查密码是否正确
+	if user.Password != password {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"code": http.StatusUnauthorized, "message": "密码错误"})
 		return
 	}
 
-	//返回结果，登陆成功
+	// 返回登录成功信息
 	ctx.JSON(http.StatusOK, gin.H{
-		"code":    200,
+		"code":    http.StatusOK,
 		"message": "登录成功",
 	})
 }
 
 // RegisterHandler 用户注册
 func RegisterHandler(ctx *gin.Context) {
-
-	////获取JSON数据
-	//var newuser dataBase.User
-	//if err := ctx.ShouldBindJSON(&newuser); err != nil {
-	//	ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	//	return
-	//}
-
-	//获取表单参数
+	// 获取表单参数
 	name := ctx.PostForm("user")
 	password := ctx.PostForm("password")
-
-	////数据验证
-	//if len(name) == 0 {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-	//		"code":    422,
-	//		"message": "用户名不能为空",
-	//	})
-	//	return
-	//}
-	//if len(password) < 6 {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-	//		"code":    422,
-	//		"message": "密码不能少于6位",
-	//	})
-	//	return
-	//}
+	card := ctx.PostForm("card") // 获取card参数
 
 	// 数据验证
-	if len(name) == 0 || len(password) < 6 {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"code": 422, "message": "用户名不能为空且密码不能少于6位"})
+	if len(name) == 0 || len(password) < 6 || len(card) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "用户名不能为空，密码长度不能少于6位，卡号不能为空",
+		})
 		return
 	}
 
-	//判断用户名是否存在
-	var user dataBase.User
-	dataBase.DB.Where("user = ?", name).First(&user)
-	if user.ID != 0 {
+	// 查询用户名和卡号是否已存在
+	var existingUser dataBase.User
+	if err := dataBase.DB.Where("user = ? OR card = ?", name, card).First(&existingUser).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			// 用户名和卡号都可用，创建新用户
+			addUser := dataBase.User{
+				User:     name,
+				Password: password,
+				Card:     card, // 保存card参数
+			}
+			if err := dataBase.DB.Create(&addUser).Error; err != nil {
+				ctx.JSON(http.StatusInternalServerError, gin.H{
+					"code":    http.StatusInternalServerError,
+					"message": "用户注册失败",
+				})
+				return
+			}
+			// 返回注册成功信息
+			ctx.JSON(http.StatusCreated, gin.H{
+				"code":    http.StatusCreated,
+				"message": "注册成功",
+			})
+		} else {
+			// 数据库查询错误
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"code":    http.StatusInternalServerError,
+				"message": "数据库查询失败",
+			})
+		}
+		return
+	}
+
+	// 用户名或卡号已存在
+	if existingUser.User == name {
 		ctx.JSON(http.StatusConflict, gin.H{
 			"code":    409,
 			"message": "用户名已存在",
 		})
-		return
-	}
-
-	//创建用户
-	hasedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "密码加密错误",
+	} else {
+		ctx.JSON(http.StatusConflict, gin.H{
+			"code":    409,
+			"message": "卡号已存在",
 		})
-		return
 	}
-	addUser := dataBase.User{
-		User:     name,
-		Password: string(hasedPassword),
-	}
-	dataBase.DB.Create(&addUser)
-
-	//返回结果
-	ctx.JSON(http.StatusCreated, gin.H{
-		"code":    201,
-		"message": "注册成功",
-	})
 }
+
+//// ListHandler 列出所有用户
+//func ListHandler(ctx *gin.Context) {
+//	// 查询所有用户
+//	var users []dataBase.User
+//	result := dataBase.DB.Find(&users)
+//	if result.Error != nil {
+//		ctx.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
+//		return
+//	}
+//
+//	ctx.JSON(http.StatusOK, users)
+//}
 
 // ListHandler 列出所有用户
 func ListHandler(ctx *gin.Context) {
@@ -144,119 +130,122 @@ func ListHandler(ctx *gin.Context) {
 	var users []dataBase.User
 	result := dataBase.DB.Find(&users)
 	if result.Error != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "查询用户失败",
+		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, users)
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "查询用户成功",
+		"data":    users,
+	})
 }
 
-// DeleteHandler 删除指定用户
+// DeleteHandler 通过用户名删除用户
 func DeleteHandler(ctx *gin.Context) {
-
-	////获取JSON数据
-	//var newuser dataBase.User
-	//if err := ctx.ShouldBindJSON(&newuser); err != nil {
-	//	ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	//	return
-	//}
-
-	//获取删除用户ID
-	idDelete := ctx.PostForm("id")
-
-	// 查询用户是否存在
-	var user dataBase.User
-	result := dataBase.DB.First(&user, idDelete)
-	if result.Error != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{
-			"code":    404,
-			"message": "未查询到用户",
+	// 绑定表单数据到结构体
+	var form struct {
+		Username string `form:"user"`
+	}
+	if err := ctx.ShouldBind(&form); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "无法解析表单数据",
 		})
+		return
+	}
+
+	// 判断用户名是否为空
+	if form.Username == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "用户名不能为空",
+		})
+		return
+	}
+
+	// 在数据库中查找要删除的用户
+	var user dataBase.User
+	result := dataBase.DB.Where("user = ?", form.Username).First(&user)
+	if result.Error != nil {
+		if gorm.IsRecordNotFoundError(result.Error) {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"code":    http.StatusNotFound,
+				"message": "用户不存在",
+			})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"code":    http.StatusInternalServerError,
+				"message": "无法删除用户",
+			})
+		}
 		return
 	}
 
 	// 删除用户
-	deleteResult := dataBase.DB.Delete(&user)
-	if deleteResult.Error != nil {
+	result = dataBase.DB.Delete(&user)
+	if result.Error != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "删除用户错误",
+			"code":    http.StatusInternalServerError,
+			"message": "无法删除用户",
 		})
 		return
 	}
 
-	//返回结果
 	ctx.JSON(http.StatusOK, gin.H{
-		"code":    200,
-		"message": "删除成功",
+		"code":    http.StatusOK,
+		"message": "用户删除成功",
 	})
 }
 
-// ModifyHandler 修改用户密码
+// / ModifyHandler 更新用户密码
 func ModifyHandler(ctx *gin.Context) {
+	// 获取表单参数
+	username := ctx.PostForm("user")
+	newPassword := ctx.PostForm("password")
 
-	////获取JSON数据
-	//var newuser dataBase.User
-	//if err := ctx.ShouldBindJSON(&newuser); err != nil {
-	//	ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	//	return
-	//}
-
-	//获取参数
-	name := ctx.PostForm("user")
-	password := ctx.PostForm("password")
-
-	////判断用户名是否存在
-	//var user dataBase.User
-	//dataBase.DB.Where("user = ?", name).First(&user)
-	//if user.ID == 0 {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-	//		"code":    422,
-	//		"message": "用户名不存在",
-	//	})
-	//	fmt.Printf("用户名不存在")
-	//	return
-	//}
-
-	//数据验证
-	//if len(password) < 6 {
-	//	ctx.JSON(http.StatusUnprocessableEntity, gin.H{
-	//		"code":    422,
-	//		"message": "密码不能少于6位",
-	//	})
-	//	return
-	//}
-
-	//数据验证
-	if len(name) == 0 || len(password) < 6 {
-		ctx.JSON(http.StatusUnprocessableEntity, gin.H{"code": 422, "message": "用户名不能为空且密码不能少于6位"})
-		return
-	}
-
-	//密码加密
-	hasedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "密码加密错误",
+	// 数据验证
+	if len(username) == 0 || len(newPassword) < 6 {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code":    http.StatusBadRequest,
+			"message": "用户名不能为空，新密码长度不能少于6位",
 		})
 		return
 	}
 
-	// 保存更新后的用户信息
-	updateResult := dataBase.DB.Model(&dataBase.User{}).Where("user = ?",
-		name).Update("password", hasedPassword)
-	if updateResult.Error != nil {
+	// 查询用户
+	var user dataBase.User
+	if err := dataBase.DB.Where("user = ?", username).First(&user).Error; err != nil {
+		if gorm.IsRecordNotFoundError(err) {
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"code":    http.StatusNotFound,
+				"message": "用户不存在",
+			})
+		} else {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"code":    http.StatusInternalServerError,
+				"message": "数据库查询失败",
+			})
+		}
+		return
+	}
+
+	// 更新用户密码
+	user.Password = newPassword
+	if err := dataBase.DB.Save(&user).Error; err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"code":    500,
-			"message": "密码更改错误",
+			"code":    http.StatusInternalServerError,
+			"message": "密码更新失败",
 		})
 		return
 	}
 
-	//返回结果
+	// 返回密码更新成功信息
 	ctx.JSON(http.StatusOK, gin.H{
-		"code":    200,
-		"message": "密码更改成功",
+		"code":    http.StatusOK,
+		"message": "密码更新成功",
 	})
 }
