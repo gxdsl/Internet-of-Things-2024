@@ -62,7 +62,7 @@ func HandleClient(conn net.Conn) {
 			buffer.Reset() // 清空缓冲区
 			continue       // 继续等待数据
 		}
-		fmt.Print(jsonData) //打印解析数据的切片
+		//fmt.Print(jsonData) //打印解析数据的切片
 
 		// 根据Json数据类型执行不同操作
 		switch {
