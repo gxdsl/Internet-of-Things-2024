@@ -191,7 +191,7 @@ func MoneyHandler(data []byte) {
 	fmt.Println("Transaction completed:", transaction)
 }
 
-// UserHandler 处理消费金额
+// UserHandler 处理用户信息
 func UserHandler(data []byte) {
 	var jsonData map[string]interface{}
 
@@ -212,6 +212,13 @@ func UserHandler(data []byte) {
 	var user dataBase.User
 	if err := dataBase.DB.Where("card = ?", card).First(&user).Error; err != nil {
 		fmt.Println("Error querying user:", err)
+		// 构建空用户的 JSON 响应
+		response := gin.H{
+			"user":    "None",
+			"balance": 0,
+		}
+		// 发送响应到客户端
+		Send(response)
 		return
 	}
 
