@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"io"
 	"net"
 )
@@ -71,6 +72,8 @@ func HandleClient(conn net.Conn) {
 			WaterHandler(buffer.Bytes())
 		case jsonData["dispenser_id"] != nil && jsonData["card"] != nil && jsonData["amount"] != nil:
 			MoneyHandler(buffer.Bytes())
+		case jsonData["dispenser_id"] != nil && jsonData["card"] != nil:
+			UserHandler(buffer.Bytes())
 		default:
 			fmt.Println("Unknown data type")
 		}
@@ -176,9 +179,53 @@ func MoneyHandler(data []byte) {
 		return
 	}
 
+	// 构建 JSON 响应
+	response := gin.H{
+		"user":    user.User,
+		"balance": user.Balance,
+	}
+
+	// 发送响应到客户端
+	Send(response)
+
 	fmt.Println("Transaction completed:", transaction)
 }
 
+// UserHandler 处理消费金额
+func UserHandler(data []byte) {
+	var jsonData map[string]interface{}
+
+	// 解析 JSON 数据
+	if err := json.Unmarshal(data, &jsonData); err != nil {
+		fmt.Println("Error decoding JSON:", err)
+		return
+	}
+
+	// 获取用户卡号
+	card, ok := jsonData["card"].(string)
+	if !ok {
+		fmt.Println("Invalid JSON format")
+		return
+	}
+
+	// 根据卡号查找用户
+	var user dataBase.User
+	if err := dataBase.DB.Where("card = ?", card).First(&user).Error; err != nil {
+		fmt.Println("Error querying user:", err)
+		return
+	}
+
+	// 构建 JSON 响应
+	response := gin.H{
+		"user":    user.User,
+		"balance": user.Balance,
+	}
+
+	// 发送响应到客户端
+	Send(response)
+}
+
+// Send 函数用于将 JSON 数据发送到客户端连接
 func Send(Data interface{}) {
 	// 序列化 JSON 对象为 JSON 字符串
 	jsonData, err := json.Marshal(Data)

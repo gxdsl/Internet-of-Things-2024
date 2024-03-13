@@ -31,5 +31,6 @@ func GroupNestd(engine *gin.Engine) {
 	{
 		Status.POST("/open", OpenHandler)   //控制饮水机开水
 		Status.POST("/close", CloseHandler) //控制饮水机关水
+
 	}
 }
