@@ -10,7 +10,7 @@ func GroupNestd(engine *gin.Engine) {
 	{
 		User.POST("/login", LoginHandler)       //用户登录
 		User.POST("/register", RegisterHandler) //用户注册
-		User.POST("/list", ListHandler)         //列出所有用户
+		User.GET("/list", ListHandler)          //列出所有用户
 		User.POST("/delete", DeleteHandler)     //删除用户
 		User.POST("/modify", ModifyHandler)     //修改密码
 		User.POST("/recharge", RechargeHandler) //用户充值
@@ -31,6 +31,5 @@ func GroupNestd(engine *gin.Engine) {
 	{
 		Status.POST("/open", OpenHandler)   //控制饮水机开水
 		Status.POST("/close", CloseHandler) //控制饮水机关水
-
 	}
 }

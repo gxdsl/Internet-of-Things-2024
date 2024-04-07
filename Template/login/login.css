@@ -1,10 +1,11 @@
 body{
     margin: 0;
     padding: 0;
-    background-image: url(th.jpg);
+    background-image: url(background.jpg);
     background-repeat: no-repeat;
     background-size: cover;
 }
+
 h1{
     text-align: center;
     line-height: 100px;
