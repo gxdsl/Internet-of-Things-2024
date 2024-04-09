@@ -114,19 +114,6 @@ func RegisterHandler(ctx *gin.Context) {
 	}
 }
 
-//// ListHandler 列出所有用户
-//func ListHandler(ctx *gin.Context) {
-//	// 查询所有用户
-//	var users []dataBase.User
-//	result := dataBase.DB.Find(&users)
-//	if result.Error != nil {
-//		ctx.JSON(http.StatusBadRequest, gin.H{"error": result.Error})
-//		return
-//	}
-//
-//	ctx.JSON(http.StatusOK, users)
-//}
-
 // ListHandler 列出所有用户
 func ListHandler(ctx *gin.Context) {
 	// 查询所有用户

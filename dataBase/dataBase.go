@@ -19,6 +19,14 @@ type DBSeting struct {
 	Charset  string
 }
 
+// Admin 表结构：饮水机表
+type Admin struct {
+	ID       uint   `gorm:"primaryKey"` // 主键
+	Username string // 用户名
+	Password string // 密码
+	Status   bool   // 状态
+}
+
 // WaterDispenser 表结构：饮水机表
 type WaterDispenser struct {
 	ID          uint    `gorm:"primaryKey"` // 主键
@@ -90,7 +98,7 @@ func InitDB() {
 	}
 
 	// 自动迁移表结构
-	db.AutoMigrate(&WaterDispenser{}, &Transaction{}, &User{}, &DispenserStatus{})
+	db.AutoMigrate(&Admin{}, &WaterDispenser{}, &Transaction{}, &User{}, &DispenserStatus{})
 
 	DB = db
 }

@@ -6,6 +6,13 @@ import (
 
 // GroupNestd 路由组
 func GroupNestd(engine *gin.Engine) {
+	Admin := engine.Group("/admin")
+	{
+		Admin.POST("/login", AdminLoginHandler)       //管理员登录
+		Admin.POST("/register", AdminRegisterHandler) //新增管理员
+
+		Admin.GET("/list", AdminListHandler) //列出所有管理员
+	}
 	User := engine.Group("/user")
 	{
 		User.POST("/login", LoginHandler)       //用户登录
