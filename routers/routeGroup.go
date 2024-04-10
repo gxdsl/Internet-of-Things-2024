@@ -27,11 +27,13 @@ func GroupNestd(engine *gin.Engine) {
 	}
 	Data := engine.Group("/data")
 	{
-		Data.GET("/list", ChecklistHandler)       //查询最新20条状态数据
-		Data.GET("/latest", ChecklatestHandler)   //查询最新一条状态数据
-		Data.GET("/tdslatest", TDSlatestHandler)  //查询TDS水质最新数据
-		Data.GET("/temlatest", TemplatestHandler) //查询水温最新数据
+		Data.GET("/list", ChecklistHandler)        //查询最新20条状态数据
+		Data.GET("/latest", ChecklatestHandler)    //查询最新一条状态数据
+		Data.GET("/tdslatest", TDSlatestHandler)   //查询TDS水质最新数据
+		Data.GET("/temlatest", TemplatestHandler)  //查询水温最新数据
+		Data.GET("/spendtotal", SpendtotalHandler) //查询消费总数
 
+		Data.POST("/spenddata", SpenddataHandler)     //获取当前页面消费数据
 		Data.POST("/devicespend", DeviceslistHandler) //查询设备最新20条消费数据
 	}
 	Status := engine.Group("/status")

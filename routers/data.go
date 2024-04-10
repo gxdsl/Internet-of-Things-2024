@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"log"
 	"math"
 	"net/http"
+	"strconv"
 )
 
 // ChecklistHandler 查询最新20条数据
@@ -120,4 +122,41 @@ func DeviceslistHandler(ctx *gin.Context) {
 
 	// 返回查询结果
 	ctx.JSON(http.StatusOK, latestTransactions)
+}
+
+// SpendtotalHandler 查询设备消费记录总数
+func SpendtotalHandler(ctx *gin.Context) {
+	var total int64
+	if err := dataBase.DB.Model(&dataBase.Transaction{}).Count(&total).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Total consumption acquisition failed",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"total": total,
+	})
+}
+
+// SpenddataHandler 返回当前页的消费数据，按倒序排列
+func SpenddataHandler(ctx *gin.Context) {
+	// 从表单中获取页码和每页数量，默认为第一页，每页显示 10 条数据
+	page, _ := strconv.Atoi(ctx.PostForm("page"))
+	pageSize, _ := strconv.Atoi(ctx.PostForm("pageSize"))
+
+	// 计算偏移量
+	offset := (page - 1) * pageSize
+
+	// 查询当前页的消费数据，按ID倒序排列
+	var transactions []dataBase.Transaction
+	if err := dataBase.DB.Order("id desc").Offset(offset).Limit(pageSize).Find(&transactions).Error; err != nil {
+		log.Println("Error getting spend data:", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get spend data"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"pagedata": transactions,
+	})
 }
