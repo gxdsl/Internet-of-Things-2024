@@ -12,20 +12,33 @@ import (
 	"strconv"
 )
 
-// ChecklistHandler 查询最新20条数据
+// ChecklistHandler 查询数据
 func ChecklistHandler(ctx *gin.Context) {
-	var data []dataBase.DispenserStatus
+	var allData []dataBase.DispenserStatus
 
-	// 使用 GORM 进行查询最新20条数据
-	if err := dataBase.DB.Order("id desc").Limit(20).Find(&data).Error; err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": "无法获取数据",
-		})
-		return
+	// 从最新的数据开始，每隔300条获取一次，获取十次数据
+	for i := 0; i < 10; i++ {
+		offset := i * 300 // 计算偏移量
+		var data dataBase.DispenserStatus
+
+		if err := dataBase.DB.Order("id desc").Offset(offset).Limit(1).Find(&data).Error; err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": "无法获取数据",
+			})
+			return
+		}
+
+		// 将获取的数据添加到所有数据中
+		allData = append(allData, data)
 	}
 
-	// 将 JSON 响应输出到客户端
-	ctx.JSON(http.StatusOK, data)
+	// 将所有数据倒序发送到客户端
+	reversedData := make([]dataBase.DispenserStatus, len(allData))
+	for i, j := 0, len(allData)-1; i < len(allData); i, j = i+1, j-1 {
+		reversedData[i] = allData[j]
+	}
+
+	ctx.JSON(http.StatusOK, reversedData)
 }
 
 // ChecklatestHandler 查询最新数据
