@@ -26,13 +26,13 @@ func main() {
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"*"}
 	ginServer.Use(cors.New(config))
- 
+
 	// 运行路由组
 	routers.GroupNestd(ginServer)
 
 	// 设置服务器的 IP 地址和端口
-	//serverIP := "0.0.0.0"
-	serverIP := "127.0.0.1"
+	serverIP := "0.0.0.0"
+	//serverIP := "127.0.0.1"
 	serverPort := "8888"
 	ShowIP() //打印端口
 	// 监听端口，将其放在单独Go协程中运行

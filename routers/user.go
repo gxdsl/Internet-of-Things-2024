@@ -114,6 +114,37 @@ func RegisterHandler(ctx *gin.Context) {
 	}
 }
 
+// GetUserHandler 列出当前用户信息
+func GetUserHandler(ctx *gin.Context) {
+	// 从表单中获取用户名
+	username := ctx.PostForm("user")
+
+	// 查询符合条件的用户
+	var user dataBase.User
+	result := dataBase.DB.Where("user = ?", username).First(&user)
+	if result.Error != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"code":    http.StatusInternalServerError,
+			"message": "查询用户失败",
+		})
+		return
+	}
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		ctx.JSON(http.StatusNotFound, gin.H{
+			"code":    http.StatusNotFound,
+			"message": "未找到符合条件的用户",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":    http.StatusOK,
+		"message": "查询用户成功",
+		"data":    user,
+	})
+}
+
 // ListHandler 列出所有用户
 func ListHandler(ctx *gin.Context) {
 	// 查询所有用户

@@ -11,6 +11,7 @@ import (
 )
 
 var globalConn net.Conn
+var GlobalAppUser string
 
 // TCPServerInit 初始化TCP服务器
 func TCPServerInit() {
@@ -74,6 +75,8 @@ func HandleClient(conn net.Conn) {
 			MoneyHandler(buffer.Bytes())
 		case jsonData["dispenser_id"] != nil && jsonData["card"] != nil:
 			UserHandler(buffer.Bytes())
+		case jsonData["dispenser_id"] != nil && jsonData["APP"] != nil && jsonData["amount"] != nil:
+			APPHandler(buffer.Bytes())
 		default:
 			fmt.Println("Unknown data type")
 		}
@@ -187,6 +190,80 @@ func MoneyHandler(data []byte) {
 
 	// 发送响应到客户端
 	Send(response)
+
+	fmt.Println("Transaction completed:", transaction)
+}
+
+// APPHandler 处理消费金额
+func APPHandler(data []byte) {
+	var jsonData map[string]interface{}
+
+	if GlobalAppUser == "" {
+		fmt.Println("GlobalAppuser is nil")
+		return
+	}
+
+	// 解析 JSON 数据
+	if err := json.Unmarshal(data, &jsonData); err != nil {
+		fmt.Println("Error decoding JSON:", err)
+		return
+	}
+
+	// 获取饮水机ID和用水量
+	dispenserID, ok1 := jsonData["dispenser_id"].(float64)
+	amount, ok2 := jsonData["amount"].(float64)
+	if !ok1 || !ok2 {
+		fmt.Println("Invalid JSON format")
+		return
+	}
+
+	// 根据饮水机ID查找饮水机的单价
+	var waterDispenser dataBase.WaterDispenser
+	if err := dataBase.DB.Where("id = ?", uint(dispenserID)).First(&waterDispenser).Error; err != nil {
+		fmt.Println("Error querying water dispenser:", err)
+		return
+	}
+
+	// 计算消费金额
+	price := waterDispenser.Price
+	totalAmount := amount * price
+
+	// 根据用户名查找用户
+	var user dataBase.User
+	if err := dataBase.DB.Where("user = ?", GlobalAppUser).First(&user).Error; err != nil {
+		fmt.Println("未找到用户:", err)
+		return
+	}
+
+	// 更新用户余额
+	user.Balance -= totalAmount
+	if err := dataBase.DB.Save(&user).Error; err != nil {
+		fmt.Println("Error updating user balance:", err)
+		return
+	}
+
+	// 插入消费记录
+	transaction := dataBase.Transaction{
+		User:        user.User,
+		DispenserID: uint(dispenserID),
+		Amount:      totalAmount,
+	}
+	if err := dataBase.DB.Create(&transaction).Error; err != nil {
+		fmt.Println("Error inserting transaction:", err)
+		return
+	}
+
+	//清空GlobalAppuser
+	GlobalAppUser = ""
+
+	//// 构建 JSON 响应
+	//response := gin.H{
+	//	"user":    user.User,
+	//	"balance": user.Balance,
+	//}
+	//
+	//// 发送响应到客户端
+	//Send(response)
 
 	fmt.Println("Transaction completed:", transaction)
 }

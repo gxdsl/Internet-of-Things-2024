@@ -17,6 +17,7 @@ func GroupNestd(engine *gin.Engine) {
 	{
 		User.POST("/login", LoginHandler)       //用户登录
 		User.POST("/register", RegisterHandler) //用户注册
+		User.POST("/getuser", GetUserHandler)   //当前用户信息
 		User.GET("/list", ListHandler)          //列出所有用户
 		User.POST("/delete", DeleteHandler)     //删除用户
 		User.POST("/modify", ModifyHandler)     //修改密码
